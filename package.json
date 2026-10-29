@@ -2,9 +2,9 @@
   "name": "kurye-app",
   "version": "1.0.0",
   "description": "Kurye Takip Uygulamasi",
-  "main": "sunucu.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node sunucu.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.19.2",
