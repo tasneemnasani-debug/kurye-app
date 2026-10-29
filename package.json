@@ -1,6 +1,7 @@
 {
   "name": "kurye-app",
   "version": "1.0.0",
+  
   "description": "Kurye Takip Uygulamasi",
   "main": "sunucu.js",
   "scripts": {
