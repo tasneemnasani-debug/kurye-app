@@ -8,13 +8,13 @@
   "description": "Kurye Takip Sistemi",
   "icons": [
     {
-      "src": "https://kurye-app.onrender.com/logo.png",
+      "src": "/halk/logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://kurye-app.onrender.com/logo.png",
+      "src": "/halk/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
