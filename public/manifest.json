@@ -1,13 +1,17 @@
 {
-  "background_color": "#ffffff",
-  "dir": "ltr",
-  "display": "standalone",
-  "name": "Kurye Takip Uygulamasi",
-  "orientation": "any",
-  "scope": "/",
+  "name": "Kurye Takip Uygulaması",
   "short_name": "KuryeApp",
   "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
   "theme_color": "#ffffff",
-  "id": "/",
-  "description": "Kurye Takip Sistemi"
+  "description": "Kurye Takip Sistemi",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
