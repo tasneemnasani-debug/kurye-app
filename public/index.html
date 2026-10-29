@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق إدارة الطرود</title>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #f8fafc; margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .card { background: #ffffff; padding: 20px; border-radius: 16px; max-width: 480px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .brand-header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; }
+        .brand-header img { max-height: 55px; }
+        .form-group { margin-bottom: 14px; position: relative; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #334155; font-size: 13px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; outline: none; }
+        input:focus, select:focus { border-color: #2563eb; }
+        .row { display: flex; gap: 10px; }
+        .row .form-group { flex: 1; }
+        .btn-add { background: #e2e8f0; border: none; padding: 0 12px; border-radius: 10px; cursor: pointer; font-size: 18px; }
+        .btn-submit { width: 100%; background: #16a34a; color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+        .brand-footer { margin-top: 20px; padding-top: 12px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #64748b; }
+        .autocomplete-results { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #cbd5e1; border-radius: 8px; z-index: 99; max-height: 120px; overflow-y: auto; }
+        .autocomplete-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+        .autocomplete-item:hover { background: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="brand-header">
+        <img src="/logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/150x50?text=LOGO'">
+        <h3 style="margin:5px 0 0 0; font-size:15px; color:#0f172a;">استلام وتوصيل الطرود</h3>
+    </div>
+
+    <form id="paketForm">
+        <div class="form-group">
+            <label>📷 صورة الطرد (كاميرا مباشرة)</label>
+            <input type="file" id="paketFoto" accept="image/*" capture="environment" required>
+        </div>
+
+        <div class="form-group">
+            <label>📍 الكراج أو التيرمينال</label>
+            <div style="display: flex; gap: 5px;">
+                <select id="lokasyonId" required><option value="">جاري التحميل...</option></select>
+                <button type="button" class="btn-add" onclick="yeniLokasyonEkle()">+</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>🏢 اسم الشركة / اليزيهاني</label>
+            <div style="display: flex; gap: 5px;">
+                <select id="firmaId" required><option value="">جاري التحميل...</option></select>
+                <button type="button" class="btn-add" onclick="yeniFirmaEkle()">+</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>👤 رقم هاتف المستلم (بحث سريع)</label>
+            <input type="tel" id="aliciTel" placeholder="05XXXXXXXXX" autocomplete="off" required oninput="aliciAra(this.value)">
+            <div id="aliciSonuclari" class="autocomplete-results" style="display: none;"></div>
+        </div>
+
+        <div class="form-group">
+            <label>👤 اسم المستلم (اختياري)</label>
+            <input type="text" id="aliciAd" placeholder="محمد أحمد">
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label>📱 هاتف المرسل</label>
+                <input type="tel" id="gondericiTel" placeholder="05XXXXXXXXX">
+            </div>
+            <div class="form-group">
+                <label>💰 السعر (ليرة)</label>
+                <input type="number" id="fiyat" value="200" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">تسجيل وإرسال إشعار واتساب</button>
+    </form>
+
+    <div class="brand-footer">
+        📞 خدمة العملاء: 0850 123 45 67 | 🌐 www.siteniz.com
+    </div>
+</div>
+
+<script>
+async function tanimlariYukle() {
+    const res = await fetch('/api/tanimlar');
+    const data = await res.json();
+    
+    const lokSelect = document.getElementById('lokasyonId');
+    lokSelect.innerHTML = '<option value="">اختر المكان...</option>';
+    data.lokasyonlar.forEach(l => {
+        lokSelect.innerHTML += `<option value="${l.id}">[${l.tur === 'otogar' ? 'كراج رئيسي' : 'كراج فرعي'}] ${l.ad}</option>`;
+    });
+
+    const firmaSelect = document.getElementById('firmaId');
+    firmaSelect.innerHTML = '<option value="">اختر الشركة...</option>';
+    data.firmalar.forEach(f => {
+        firmaSelect.innerHTML += `<option value="${f.id}">${f.ad}</option>`;
+    });
+}
+
+async function aliciAra(query) {
+    const div = document.getElementById('aliciSonuclari');
+    if (query.length < 3) { div.style.display = 'none'; return; }
+    const res = await fetch(`/api/alicilar/ara?q=${query}`);
+    const list = await res.json();
+    if (list.length === 0) { div.style.display = 'none'; return; }
+    div.innerHTML = '';
+    list.forEach(a => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.innerText = `${a.ad_soyad} (${a.telefon})`;
+        item.onclick = () => {
+            document.getElementById('aliciTel').value = a.telefon;
+            document.getElementById('aliciAd').value = a.ad_soyad || '';
+            div.style.display = 'none';
+        };
+        div.appendChild(item);
+    });
+    div.style.display = 'block';
+}
+
+async function yeniLokasyonEkle() {
+    const ad = prompt("أدخل اسم الكراج أو المحطة:");
+    const tur = confirm("اضغط موافق إذا كان كراج رئيسي (Otogar)، أو إلغاء إذا كان كراج مقاطعة (İlçe Garajı)") ? "otogar" : "ilce_garaj";
+    if (ad) {
+        await fetch('/api/lokasyon-ekle', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ tur, ad }) });
+        tanimlariYukle();
+    }
+}
+
+async function yeniFirmaEkle() {
+    const ad = prompt("أدخل اسم شركة الشحن أو المكتوب:");
+    if (ad) {
+        await fetch('/api/firma-ekle', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ ad }) });
+        tanimlariYukle();
+    }
+}
+
+document.getElementById('paketForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData();
+    fd.append('paketFoto', document.getElementById('paketFoto').files[0]);
+    fd.append('lokasyonId', document.getElementById('lokasyonId').value);
+    fd.append('firmaId', document.getElementById('firmaId').value);
+    fd.append('aliciTel', document.getElementById('aliciTel').value);
+    fd.append('aliciAd', document.getElementById('aliciAd').value);
+    fd.append('gondericiTel', document.getElementById('gondericiTel').value);
+    fd.append('fiyat', document.getElementById('fiyat').value);
+
+    const res = await fetch('/api/paket-kayit', { method: 'POST', body: fd });
+    const r = await res.json();
+    alert(r.message);
+    if(r.success) e.target.reset();
+};
+
+tanimlariYukle();
+</script>
+</body>
+</html>
